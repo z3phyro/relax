@@ -11,7 +11,7 @@ var focused bool = false
 func InitActions() *widgets.List {
 	wActionsList = widgets.NewList()
 
-	wActionsList.Title = " Actions "
+	wActionsList.Title = " Requests "
 	wActionsList.SelectedRowStyle = termui.NewStyle(termui.ColorGreen)
 
 	return wActionsList

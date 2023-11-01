@@ -48,7 +48,7 @@ func InitTree(route string) *widgets.Tree {
 	wFileTree = widgets.NewTree()
 	wFileTree.WrapText = false
 	wFileTree.SetNodes(nodes)
-	wFileTree.Title = " Requests "
+	wFileTree.Title = " Files "
 	wFileTree.SelectedRowStyle = termui.NewStyle(ui.ColorGreen)
 	wFileTree.TextStyle = termui.NewStyle(termui.ColorWhite)
 
