@@ -33,6 +33,12 @@ func refreshTabFocus() {
 	}
 }
 
+func switchFocus(tab int) {
+	refreshTabFocus()
+	tabFocus = tab
+	refreshTabFocus()
+}
+
 func openFile() {
 	boxFile := wFileTree.SelectedNode().Value.String()
 	switch tabFocus {
@@ -122,24 +128,33 @@ func main() {
 		case "<Resize>":
 			resize()
 		case "1":
-			refreshTabFocus()
-			tabFocus = 0
-			refreshTabFocus()
+			switchFocus(0)
 			openFile()
 		case "2":
-			refreshTabFocus()
-			tabFocus = 1
-			refreshTabFocus()
+			switchFocus(1)
 			openFile()
 		case "3":
-			refreshTabFocus()
-			tabFocus = 2
-			refreshTabFocus()
+			switchFocus(2)
 			openFile()
-		case "<Space>":
-			request := parser.Requests[wActionsList.SelectedRow]
-			response := client.MakeRequest(request)
-			box.SetTitleAndContent(request.Name, parser.ParseResponse(response))
+		case "<Space>", "l":
+			switch tabFocus {
+			case 0:
+				switchFocus(1)
+			case 1:
+				request := parser.Requests[wActionsList.SelectedRow]
+				response := client.MakeRequest(request)
+
+				text := fmt.Sprintf("%s\nRESPONSE BODY\n\n%s", request.Raw, parser.ParseResponse(response))
+				box.SetTitleAndContent(request.Name, text)
+				switchFocus(2)
+			}
+		case "h":
+			refreshTabFocus()
+			tabFocus -= 1
+			if tabFocus < 0 {
+				tabFocus = 2
+			}
+			refreshTabFocus()
 		case "<Tab>":
 			refreshTabFocus()
 			tabFocus += 1
@@ -147,7 +162,9 @@ func main() {
 				tabFocus = 0
 			}
 			refreshTabFocus()
-			openFile()
+			if tabFocus == 1 {
+				openFile()
+			}
 		}
 
 		if previousKey == "g" {

@@ -18,3 +18,8 @@ type Request struct {
 	Name    string
 	Verb    Method
 }
+
+type RequestLog struct {
+	Request  Request
+	Response string
+}
