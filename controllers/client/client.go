@@ -14,13 +14,6 @@ var (
 	requestsHistory []types.RequestLog = []types.RequestLog{}
 )
 
-func LogRequest(request types.Request, response string) {
-	requestsHistory = append(requestsHistory, types.RequestLog{
-		Request:  request,
-		Response: response,
-	})
-}
-
 func MakeRequest(requestParams types.Request) string {
 	bodyReader := bytes.NewReader([]byte(requestParams.Body))
 	request, err := http.NewRequest(string(requestParams.Verb), requestParams.Url, bodyReader)

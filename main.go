@@ -13,13 +13,18 @@ import (
 	"stoicdynamics.com/relax/views/actions"
 	box "stoicdynamics.com/relax/views/box"
 	fe "stoicdynamics.com/relax/views/explorer"
+	"stoicdynamics.com/relax/views/history"
 )
 
 var (
-	tabFocus     int
-	wFileTree    *widgets.Tree
-	wActionsList *widgets.List
-	wMainBox     *widgets.Paragraph
+	wFileTree        *widgets.Tree
+	wActionsList     *widgets.List
+	wMainBox         *widgets.Paragraph
+	wHistoryList     *widgets.List
+	grid             *ui.Grid
+	isHistoryVisible bool = true
+	viewsChanged     bool = false
+	tabFocus         int
 )
 
 func refreshTabFocus() {
@@ -30,6 +35,8 @@ func refreshTabFocus() {
 		actions.ToggleFocus()
 	case 2:
 		box.ToggleFocus()
+	case 3:
+		history.ToggleFocus()
 	}
 }
 
@@ -57,8 +64,38 @@ func openFile() {
 		box.SetTitleAndContent(fmt.Sprintf(" %s - %s ", request.Name, boxFile), request.Raw)
 	}
 
-	ui.Render(wActionsList)
+}
+
+func render() {
+	if isHistoryVisible {
+		grid.Set(
+			ui.NewCol(1.0/5,
+				ui.NewRow(1.0/2, wFileTree),
+				ui.NewRow(1.0/2, wActionsList)),
+			ui.NewCol(3.0/5, wMainBox),
+			ui.NewCol(1.0/5, wHistoryList),
+		)
+	} else {
+		grid.Set(
+			ui.NewCol(1.0/4,
+				ui.NewRow(1.0/2, wFileTree),
+				ui.NewRow(1.0/2, wActionsList)),
+			ui.NewCol(3.0/4, wMainBox),
+		)
+	}
+
+	ui.Render(grid)
+	ui.Render(wHistoryList)
 	ui.Render(wMainBox)
+	ui.Render(wFileTree)
+	ui.Render(wActionsList)
+
+	viewsChanged = false
+}
+
+func resize() {
+	x, y := ui.TerminalDimensions()
+	grid.SetRect(0, 0, x, y)
 }
 
 func main() {
@@ -72,30 +109,19 @@ func main() {
 
 	config.InitConfig()
 
-	grid := ui.NewGrid()
+	grid = ui.NewGrid()
 
 	wFileTree = fe.InitTree(config.GetRootPath())
 	wMainBox = box.InitBox()
 	wActionsList = actions.InitActions()
+	wHistoryList = history.InitHistory()
 
 	tabFocus = 0
 
-	grid.Set(
-		ui.NewCol(1.0/4,
-			ui.NewRow(1.0/2, wFileTree),
-			ui.NewRow(1.0/2, wActionsList)),
-		ui.NewCol(3.0/4, wMainBox),
-	)
-
-	resize := func() {
-		x, y := ui.TerminalDimensions()
-		grid.SetRect(0, 0, x, y)
-	}
-
-	resize()
-
 	openFile()
 	fe.ToggleFocus()
+	resize()
+	render()
 	ui.Render(grid)
 
 	previousKey := ""
@@ -111,6 +137,8 @@ func main() {
 				wFileTree.ScrollDown()
 			case 1:
 				wActionsList.ScrollDown()
+			case 3:
+				wHistoryList.ScrollDown()
 			}
 			openFile()
 		case "k", "<Up>":
@@ -119,6 +147,8 @@ func main() {
 				wFileTree.ScrollUp()
 			case 1:
 				wActionsList.ScrollUp()
+			case 3:
+				wHistoryList.ScrollUp()
 			}
 			openFile()
 		case "g":
@@ -136,25 +166,42 @@ func main() {
 		case "3":
 			switchFocus(2)
 			openFile()
-		case "<Space>", "l":
+		case "<Space>":
 			switch tabFocus {
 			case 0:
 				switchFocus(1)
-			case 1:
+			case 1, 2:
+				if wActionsList.SelectedRow >= len(parser.Requests) {
+					break
+				}
 				request := parser.Requests[wActionsList.SelectedRow]
 				response := client.MakeRequest(request)
-
 				text := fmt.Sprintf("%s\nRESPONSE BODY\n\n%s", request.Raw, parser.ParseResponse(response))
+				history.LogRequest(request, text)
+
 				box.SetTitleAndContent(request.Name, text)
-				switchFocus(2)
+			case 3:
+				if wHistoryList.SelectedRow >= len(history.RequestsHistory) {
+					break
+				}
+
+				box.SetTitleAndContent(
+					fmt.Sprintf(" %s ", wHistoryList.Rows[wHistoryList.SelectedRow]),
+					history.RequestsHistory[wHistoryList.SelectedRow].Response,
+				)
 			}
+		case "l":
+			newPos := tabFocus + 1
+			if newPos > 3 {
+				newPos = 0
+			}
+			switchFocus(newPos)
 		case "h":
-			refreshTabFocus()
-			tabFocus -= 1
-			if tabFocus < 0 {
-				tabFocus = 2
+			newPos := tabFocus - 1
+			if newPos < 0 {
+				newPos = 3
 			}
-			refreshTabFocus()
+			switchFocus(newPos)
 		case "<Tab>":
 			refreshTabFocus()
 			tabFocus += 1
@@ -165,6 +212,13 @@ func main() {
 			if tabFocus == 1 {
 				openFile()
 			}
+		case "y":
+			if isHistoryVisible {
+				isHistoryVisible = false
+			} else {
+				isHistoryVisible = true
+			}
+			viewsChanged = true
 		}
 
 		if previousKey == "g" {
@@ -173,6 +227,6 @@ func main() {
 			previousKey = e.ID
 		}
 
-		ui.Render(grid)
+		render()
 	}
 }
