@@ -29,7 +29,7 @@ func LogRequest(request types.Request, response string) {
 		Response: response,
 	})
 
-	wHistoryList.Rows = append(wHistoryList.Rows, fmt.Sprintf("%s - At %s", request.Name, time.Now().Format("15:04:05")))
+	wHistoryList.Rows = append(wHistoryList.Rows, fmt.Sprintf("%s - %s At %s", request.Name, request.FileName, time.Now().Format("15:04:05")))
 	wHistoryList.SelectedRow = len(wHistoryList.Rows) - 1
 }
 

@@ -11,15 +11,22 @@ const (
 )
 
 type Request struct {
-	Raw     string
-	Url     string
-	Headers string
-	Body    string
-	Name    string
-	Verb    Method
+	Raw      string
+	Url      string
+	Headers  string
+	Body     string
+	Name     string
+	FileName string
+	Verb     Method
 }
 
 type RequestLog struct {
 	Request  Request
 	Response string
+}
+
+type Response struct {
+	Status string
+	Header string
+	Body   string
 }

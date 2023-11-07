@@ -19,7 +19,7 @@ import (
 var (
 	wFileTree        *widgets.Tree
 	wActionsList     *widgets.List
-	wMainBox         *widgets.Paragraph
+	wMainBox         *widgets.ScrollBox
 	wHistoryList     *widgets.List
 	grid             *ui.Grid
 	isHistoryVisible bool = true
@@ -52,7 +52,7 @@ func openFile() {
 	case 0:
 		boxContent := parser.OpenFile(config.GetRootPath(), boxFile)
 		box.SetTitleAndContent(fmt.Sprintf(" %s ", boxFile), boxContent)
-		parser.ParseRequestText(boxContent)
+		parser.ParseRequestText(boxContent, boxFile)
 
 		actionsList := []string{}
 		for _, request := range parser.Requests {
@@ -62,8 +62,16 @@ func openFile() {
 	case 1:
 		request := parser.Requests[wActionsList.SelectedRow]
 		box.SetTitleAndContent(fmt.Sprintf(" %s - %s ", request.Name, boxFile), request.Raw)
-	}
+	case 3:
+		if wHistoryList.SelectedRow >= len(history.RequestsHistory) {
+			break
+		}
 
+		box.SetTitleAndContent(
+			fmt.Sprintf(" %s ", wHistoryList.Rows[wHistoryList.SelectedRow]),
+			history.RequestsHistory[wHistoryList.SelectedRow].Response,
+		)
+	}
 }
 
 func render() {
@@ -137,6 +145,8 @@ func main() {
 				wFileTree.ScrollDown()
 			case 1:
 				wActionsList.ScrollDown()
+			case 2:
+				wMainBox.ScrollDown()
 			case 3:
 				wHistoryList.ScrollDown()
 			}
@@ -147,6 +157,8 @@ func main() {
 				wFileTree.ScrollUp()
 			case 1:
 				wActionsList.ScrollUp()
+			case 2:
+				wMainBox.ScrollUp()
 			case 3:
 				wHistoryList.ScrollUp()
 			}
@@ -175,20 +187,22 @@ func main() {
 					break
 				}
 				request := parser.Requests[wActionsList.SelectedRow]
-				response := client.MakeRequest(request)
-				text := fmt.Sprintf("%s\nRESPONSE BODY\n\n%s", request.Raw, parser.ParseResponse(response))
+				response, err := client.MakeRequest(request)
+				var text string
+				if err != nil {
+					text = err.Error()
+				} else {
+					text = fmt.Sprintf(
+						"%s \n\nResponse:\nStatus %s\n\nBody: \n%s\n\nHeaders:\n%s",
+						request.Raw,
+						response.Status,
+						parser.ParseResponse(response.Body),
+						response.Header,
+					)
+				}
 				history.LogRequest(request, text)
 
-				box.SetTitleAndContent(request.Name, text)
-			case 3:
-				if wHistoryList.SelectedRow >= len(history.RequestsHistory) {
-					break
-				}
-
-				box.SetTitleAndContent(
-					fmt.Sprintf(" %s ", wHistoryList.Rows[wHistoryList.SelectedRow]),
-					history.RequestsHistory[wHistoryList.SelectedRow].Response,
-				)
+				box.SetTitleAndContent(fmt.Sprintf("%s - %s", request.Name, request.FileName), text)
 			}
 		case "l":
 			newPos := tabFocus + 1

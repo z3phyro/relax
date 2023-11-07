@@ -6,21 +6,22 @@ import (
 )
 
 var (
-	wTextBox *widgets.Paragraph
+	wTextBox *widgets.ScrollBox
 	focused  bool
 )
 
-func InitBox() *widgets.Paragraph {
-	wTextBox = widgets.NewParagraph()
+func InitBox() *widgets.ScrollBox {
+	wTextBox = widgets.NewScrollBox()
 
 	wTextBox.Title = " Request "
-	// wTextBox.WrapText = true
+	wTextBox.WrapText = true
 
 	return wTextBox
 }
 
 func SetTitleAndContent(file string, text string) {
 	wTextBox.Text = text
+	wTextBox.ScrollYPosition = 0
 	wTextBox.Title = file
 }
 

@@ -31,7 +31,7 @@ func parseVariables(text string) {
 	}
 }
 
-func parseRequests(text string) {
+func parseRequests(text string, fileName string) {
 	Requests = []types.Request{}
 
 	re := regexp.MustCompile(`###(.*)\n`)
@@ -52,23 +52,25 @@ func parseRequests(text string) {
 		name := requestMatch[1]
 
 		Requests = append(Requests, types.Request{
-			Raw:     rawRequest,
-			Name:    name,
-			Verb:    types.Method(string(requestMatch[1])),
-			Headers: requestMatch[4],
-			Body:    requestMatch[7],
-			Url:     requestMatch[2],
+			Raw:      rawRequest,
+			Name:     name,
+			Verb:     types.Method(string(requestMatch[1])),
+			Headers:  requestMatch[4],
+			Body:     requestMatch[7],
+			Url:      requestMatch[2],
+			FileName: fileName,
 		})
 	}
 }
 
-func ParseRequestText(text string) {
+func ParseRequestText(text string, filename string) {
 	parseVariables(text)
-	parseRequests(text)
+	parseRequests(text, filename)
 }
 
 func OpenFile(root string, file string) string {
 	content, err := os.ReadFile(root + file)
+	defer os.Stdin.Close()
 	if err != nil {
 		log.Fatal(err)
 	}

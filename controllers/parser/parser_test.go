@@ -14,7 +14,7 @@ Content-Type: text/html; charset=utf-8
 	"here": "value"
 }`
 
-	ParseRequestText(file)
+	ParseRequestText(file, "somename")
 
 	if len(Variables) != 1 {
 		t.Errorf("Not enough variables parsed found %d needed %d", len(Variables), 1)
