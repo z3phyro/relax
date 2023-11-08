@@ -5,9 +5,9 @@ import (
 	"log"
 	"path/filepath"
 
-	ui "github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
 	tb "github.com/nsf/termbox-go"
+	ui "github.com/z3phyro/termui"
+	"github.com/z3phyro/termui/widgets"
 	"stoicdynamics.com/relax/config"
 	"stoicdynamics.com/relax/controllers/client"
 	"stoicdynamics.com/relax/controllers/parser"

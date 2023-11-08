@@ -1,8 +1,8 @@
 package box
 
 import (
-	"github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
+	"github.com/z3phyro/termui"
+	"github.com/z3phyro/termui/widgets"
 )
 
 var (

@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gizak/termui/v3"
-	ui "github.com/gizak/termui/v3"
-	"github.com/gizak/termui/v3/widgets"
+	"github.com/z3phyro/termui"
+	ui "github.com/z3phyro/termui"
+	"github.com/z3phyro/termui/widgets"
 )
 
 type nodeValue string
