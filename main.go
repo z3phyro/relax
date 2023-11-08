@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
@@ -47,10 +48,16 @@ func switchFocus(tab int) {
 }
 
 func openFile() {
-	boxFile := wFileTree.SelectedNode().Value.String()
+	boxFile := fe.GetNodeLocation(wFileTree.SelectedNode())
 	switch tabFocus {
 	case 0:
-		boxContent := parser.OpenFile(config.GetRootPath(), boxFile)
+		fullPath := filepath.Join(config.GetRootPath(), boxFile)
+		if parser.IsFileDirectory(fullPath) {
+			wFileTree.Expand()
+			fmt.Print("", boxFile)
+			break
+		}
+		boxContent := parser.OpenFile(fullPath)
 		box.SetTitleAndContent(fmt.Sprintf(" %s ", boxFile), boxContent)
 		parser.ParseRequestText(boxContent, boxFile)
 

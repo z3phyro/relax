@@ -68,8 +68,20 @@ func ParseRequestText(text string, filename string) {
 	parseRequests(text, filename)
 }
 
-func OpenFile(root string, file string) string {
-	content, err := os.ReadFile(root + file)
+func IsFileDirectory(fullPath string) bool {
+	if fileInfo, err := os.Stat(fullPath); err == nil {
+		return fileInfo.IsDir()
+	}
+
+	return false
+}
+
+func OpenFile(fullPath string) string {
+	if IsFileDirectory(fullPath) {
+		return ""
+	}
+
+	content, err := os.ReadFile(fullPath)
 	defer os.Stdin.Close()
 	if err != nil {
 		log.Fatal(err)
